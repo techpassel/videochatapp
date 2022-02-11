@@ -39,14 +39,11 @@ const App = () => {
         <AppBar className={classes.appBar} position="static" color="inherit">
             <Typography variant="h3" align="center">Video Chat App</Typography>
         </AppBar>
-        {/* VideoPlayer */}
         <VideoPlayer />
 
         <Option>
             <Notification />
         </Option>
-
-        {/* Optional */}
     </div>
   )
 }

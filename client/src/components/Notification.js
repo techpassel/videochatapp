@@ -20,6 +20,9 @@ const Notification = () => {
           <Button variant='contained' color='primary' onClick={answerCall}>
             Answer
           </Button>
+          {/* <Button variant='contained' color='primary' onClick={answerCall}>
+            Reject
+          </Button> */}
         </div>
       )}
     </>

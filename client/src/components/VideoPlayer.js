@@ -1,4 +1,4 @@
-import React, {useContext} from 'react'
+import React, { useContext } from 'react'
 import { Grid, Typography, Paper, makeStyles } from '@material-ui/core';
 
 import { SocketContext } from '../SocketContext';
@@ -30,22 +30,25 @@ const VideoPlayer = () => {
     return (
         <Grid container className={classes.gridContainer}>
             {/*Our own video component - We will show it only if we have some stream*/}
-            {stream && (
-                <Paper className={classes.paper}>
-                    <Grid item xs={12} md={6}>
-                        <Typography variant="h5" gutterBottom>{name || 'Name'}</Typography>
-                        <video playsInline muted ref={myVideo} autoPlay className={classes.video} />
-                    </Grid>
-                </Paper>
-            )}
+            {/* {stream && (
+                
+            )} */}
             {/*User's video component - we will show it only after call is accepted and only till call is not ended */}
             {callAccepted && !callEnded && (
-                <Paper className={classes.paper}>
-                    <Grid item xs={12} md={6}>
-                        <Typography variant="h5" gutterBottom>{call.name || 'Name'}</Typography>
-                        <video playsInline ref={userVideo} autoPlay className={classes.video} />
-                    </Grid>
-                </Paper>
+                <>
+                    <Paper className={classes.paper}>
+                        <Grid item xs={12} md={6}>
+                            <Typography variant="h5" gutterBottom>{name || 'Name'}</Typography>
+                            <video playsInline muted ref={myVideo} autoPlay className={classes.video} />
+                        </Grid>
+                    </Paper>
+                    <Paper className={classes.paper}>
+                        <Grid item xs={12} md={6}>
+                            <Typography variant="h5" gutterBottom>{call.name || 'Name'}</Typography>
+                            <video playsInline ref={userVideo} autoPlay className={classes.video} />
+                        </Grid>
+                    </Paper>
+                </>
             )}
         </Grid>
     )

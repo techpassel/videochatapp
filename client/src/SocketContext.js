@@ -4,10 +4,11 @@ import Peer from 'simple-peer';
 
 const SocketContext = createContext();
 
-const socket = io('http://localhost:5000');
+const socket = io('http://192.168.64.32:5000');
 
 const ContextProvider = ({ children }) => {
     const [stream, setStream] = useState(null);
+    const [otherUserStream, setOtherUserStream] = useState(null);
     const [me, setMe] = useState('');
     const [call, setCall] = useState({});
     const [callAccepted, setCallAccepted] = useState(false);
@@ -23,10 +24,9 @@ const ContextProvider = ({ children }) => {
         navigator.mediaDevices.getUserMedia({ video: true, audio: true })
             .then(currentStream => {
                 setStream(currentStream);
-
-                //Here not only we are setting the current stream to the state but also to the 'ref' which we will 
-                //use to populate in the video iframe. 
-                myVideo.current.srcObject = currentStream;
+            })
+            .catch(e => {
+                console.log("Error in getting permission", e);
             })
 
         socket.on('me', id => {
@@ -36,7 +36,22 @@ const ContextProvider = ({ children }) => {
         socket.on('calluser', ({ from, name: callerName, signal }) => {
             setCall({ isReceivedCall: true, from, name: callerName, signal });
         });
+
+        socket.on('callended', () => {
+            setCallEnded(true);
+            if(connectionRef.current) {
+                connectionRef.current.destroy();
+                window.location.reload();
+            }
+        });
     }, []);
+
+    useEffect(() => {
+        if(stream && myVideo.current) myVideo.current.srcObject = stream;
+        if(otherUserStream && userVideo.current) userVideo.current.srcObject = otherUserStream;
+    }, [stream, otherUserStream])
+    
+
 
     const answerCall = () => {
         setCallAccepted(true);
@@ -53,9 +68,7 @@ const ContextProvider = ({ children }) => {
         });
 
         peer.on('stream', currentStream => {
-            userVideo.current.srcObject = currentStream;
-            //Note :- Here we are not setting our video reference.We had already did that in useEffect.
-            //Here we are doing it for the other user who have joined for call.  
+            setOtherUserStream(currentStream);
         })
 
         peer.signal(call.signal);
@@ -67,21 +80,21 @@ const ContextProvider = ({ children }) => {
         const peer = new Peer({ initiator: true, trickle: false, stream });
 
         peer.on('signal', data => {
+            setCall({ from: me, name: "Other User", signal: data })
+            //We need to implement it with the concept of signup and login to set the other party name correctly
             socket.emit('calluser', { userToCall: id, signalData: data, from: me, name });
         });
 
         peer.on('stream', currentStream => {
-            userVideo.current.srcObject = currentStream;
+            setOtherUserStream(currentStream);
         })
 
         socket.on('callaccepted', signal => {
             setCallAccepted(true);
-
             peer.signal(signal);
         })
 
         connectionRef.current = peer;
-
     }
 
     const leaveCall = () => {
@@ -106,7 +119,6 @@ const ContextProvider = ({ children }) => {
         leaveCall,
         answerCall,
     }}>{children}</SocketContext.Provider>);
-
 }
 
 export { ContextProvider, SocketContext };

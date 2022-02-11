@@ -52,8 +52,9 @@ io.on('connection', socket => {
 
     //socket.on is used if any message or data is sent from client side and you want to recieve that on server side.
     socket.on('disconnect', () => {
+        // console.log(socket.id);
         //Socket.broadcast.emit is used if you want to broadcast data or message to every connected sockets(i.e users) except the sender.
-        socket.broadcast.emit('call ended.');
+        socket.broadcast.emit('callended');
     })
 
     //It will be called when we will call to some other user
