@@ -60,11 +60,11 @@ io.on('connection', socket => {
     socket.on('calluser', data => {
         const {userToCall, signalData, from, name} = data;
         //"io.to(xyz).emit" is used if you want to emit some message or data to some other user(represented by variable 'userToCall' in this case).
-        io.to(userToCall).emit('calluser', {signalData, from, name})
+        io.to(userToCall).emit('calluser', {signal: signalData, from, name})
     })
 
     //It will be called when some other user will call you(i.e to the current user)
-    socket.io('answercall', data => {
+    socket.on('answercall', data => {
         const {to, signal} = data;
         //Here also we are using "io.to(xyz).emit" to emit some message or data to some other user particularly the user who called us(represented by variable 'to').  
         io.to(to).emit('callaccepted', signal);

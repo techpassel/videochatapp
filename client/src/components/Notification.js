@@ -1,8 +1,28 @@
-import React from 'react'
+import React, { useContext } from 'react';
+import { Button, makeStyles } from '@material-ui/core';
+import { SocketContext } from '../SocketContext';
+
+const useStyles = makeStyles(theme => ({
+  container: {
+    display: 'flex',
+    justifyContent: 'center'
+  }
+}));
 
 const Notification = () => {
+  const { answerCall, call, callAccepted } = useContext(SocketContext);
+  const classes = useStyles();
   return (
-    <div>Notification</div>
+    <>
+      {call.isReceivedCall && !callAccepted && (
+        <div className={classes.container}>
+          <h1>{call.name} is calling</h1>
+          <Button variant='contained' color='primary' onClick={answerCall}>
+            Answer
+          </Button>
+        </div>
+      )}
+    </>
   )
 }
 

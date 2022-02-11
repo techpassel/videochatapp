@@ -1,7 +1,6 @@
 import React, { useState, createContext, useRef, useEffect } from 'react';
 import { io } from 'socket.io-client';
 import Peer from 'simple-peer';
-import { signal } from 'nodemon/lib/config/defaults';
 
 const SocketContext = createContext();
 
@@ -75,7 +74,7 @@ const ContextProvider = ({ children }) => {
             userVideo.current.srcObject = currentStream;
         })
 
-        signal.on('callaccepted', signal => {
+        socket.on('callaccepted', signal => {
             setCallAccepted(true);
 
             peer.signal(signal);
@@ -110,4 +109,4 @@ const ContextProvider = ({ children }) => {
 
 }
 
-export {ContextProvider, SocketContext};
+export { ContextProvider, SocketContext };
