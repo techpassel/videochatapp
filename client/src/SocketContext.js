@@ -4,13 +4,14 @@ import Peer from 'simple-peer';
 
 const SocketContext = createContext();
 
-const socket = io('http://192.168.64.32:5000');
+const socket = io('http://localhost:5000');
 
 const ContextProvider = ({ children }) => {
     const [stream, setStream] = useState(null);
     const [otherUserStream, setOtherUserStream] = useState(null);
     const [me, setMe] = useState('');
     const [userToCall, setUserToCall] = useState('');
+    const [callAcceptingUser, setCallAcceptingUser] = useState('');
     const [call, setCall] = useState({});
     const [callAccepted, setCallAccepted] = useState(false);
     const [callEnded, setCallEnded] = useState(false);
@@ -30,8 +31,8 @@ const ContextProvider = ({ children }) => {
         });
 
         socket.on('callended', () => {
-            setCallEnded(true);
             if (connectionRef.current) {
+                setCallEnded(true);
                 connectionRef.current.destroy();
                 window.location.reload();
             }
@@ -48,7 +49,7 @@ const ContextProvider = ({ children }) => {
             if (userToCall !== '') {
                 const peer = new Peer({ initiator: true, trickle: false, stream });
                 peer.on('signal', data => {
-                    setCall({ from: me, name: "Other User", signal: data })
+                    setCall({ from: me, name: callAcceptingUser, signal: data })
                     //We need to implement it with the concept of signup and login to set the other party name correctly
                     socket.emit('calluser', { userToCall: userToCall, signalData: data, from: me, name });
                 });
@@ -57,9 +58,10 @@ const ContextProvider = ({ children }) => {
                     setOtherUserStream(currentStream);
                 })
 
-                socket.on('callaccepted', signal => {
+                socket.on('callaccepted', data => {
+                    setCallAcceptingUser(data.username);
                     setCallAccepted(true);
-                    peer.signal(signal);
+                    peer.signal(data?.signal);
                 })
                 connectionRef.current = peer;
             } else if (callAccepted && call.isReceivedCall) {
@@ -71,7 +73,8 @@ const ContextProvider = ({ children }) => {
 
                 //Like socket io peer also can have several events.
                 peer.on('signal', data => {
-                    socket.emit('answercall', { signal: data, to: call.from })
+                    let username = name && name != '' ? name : 'Other User'
+                    socket.emit('answercall', { signal: data, to: call.from, username })
                 });
 
                 peer.on('stream', currentStream => {
@@ -94,7 +97,7 @@ const ContextProvider = ({ children }) => {
                 setStream(currentStream);
             })
             .catch(e => {
-                console.log("Error in getting permission", e);
+                console.log("Error in getting permission in answering call", e);
             })
         setCallAccepted(true);
     }
@@ -106,16 +109,14 @@ const ContextProvider = ({ children }) => {
                 setStream(currentStream);
             })
             .catch(e => {
-                console.log("Error in getting permission", e);
+                console.log("Error in getting permission in making call", e);
             })
         setUserToCall(id);
     }
 
     const leaveCall = () => {
         setCallEnded(true);
-
         connectionRef.current.destroy();
-
         window.location.reload();
     }
 
@@ -125,6 +126,7 @@ const ContextProvider = ({ children }) => {
         myVideo,
         userVideo,
         stream,
+        otherUserStream,
         name,
         setName,
         callEnded,

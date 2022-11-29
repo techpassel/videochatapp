@@ -1,11 +1,18 @@
 import express from 'express';
 import http from 'http';
 import cors from 'cors';
-import {Server} from 'socket.io';
+import { Server } from 'socket.io';
 
 const PORT = process.env.PORT || 5000;
 const app = express();
-app.use(cors());
+const allowCrossDomain = function (req, res, next) {
+    res.header('Access-Control-Allow-Origin', "*");
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    next();
+};
+
+app.use(allowCrossDomain);
 
 //Test API
 app.get("/", (req, res) => {
@@ -59,19 +66,20 @@ io.on('connection', socket => {
 
     //It will be called when we will call to some other user
     socket.on('calluser', data => {
-        const {userToCall, signalData, from, name} = data;
+        const { userToCall, signalData, from, name } = data;
         //"io.to(xyz).emit" is used if you want to emit some message or data to some other user(represented by variable 'userToCall' in this case).
-        io.to(userToCall).emit('calluser', {signal: signalData, from, name})
+        io.to(userToCall).emit('calluser', { signal: signalData, from, name })
     })
 
     //It will be called when some other user will call you(i.e to the current user)
     socket.on('answercall', data => {
-        const {to, signal} = data;
+        const { to, signal, username } = data;
+        console.log(username);
         //Here also we are using "io.to(xyz).emit" to emit some message or data to some other user particularly the user who called us(represented by variable 'to').  
-        io.to(to).emit('callaccepted', signal);
+        io.to(to).emit('callaccepted', { signal, username });
     })
 })
 
 server.listen(PORT, () => {
     console.log(`App is running on port : ${PORT}`);
-}).on('error', (err) => console.log("Error in starting server : "+err));
+}).on('error', (err) => console.log("Error in starting server : " + err));
